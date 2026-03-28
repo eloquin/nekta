@@ -62,13 +62,12 @@ const HOTSPOTS: Hotspot[] = [
 
 function buildDots(map: Uint8Array) {
   const dots: { lat: number; lon: number }[] = []
-  const STEP = 0.95
-  for (let lat = -90+STEP/2; lat < 90; lat += STEP) {
-    const num = Math.max(1, Math.round(360*Math.cos(lat*Math.PI/180)/STEP))
-    for (let i = 0; i < num; i++) {
-      const lon = -180 + (i+0.5)*360/num
-      if (isLand(map, lat, lon)) dots.push({ lat, lon })
-    }
+  const N = 45000
+  const GOLDEN = Math.PI * (3 - Math.sqrt(5))  // golden angle ~137.5°
+  for (let i = 0; i < N; i++) {
+    const lat = Math.asin(2*i/N - 1) * 180 / Math.PI
+    const lon = ((i * GOLDEN * 180 / Math.PI) % 360) - 180
+    if (isLand(map, lat, lon)) dots.push({ lat, lon })
   }
   return dots
 }
@@ -80,14 +79,14 @@ function makeProjector(rotLon: number, rotTheta: number, scale: number) {
   const CX = SIZE/2, CY = SIZE/2, R = GLOB_R*scale
   return function project(lat: number, lon: number) {
     const dLon = ((lon - rotLon + 540) % 360) - 180
-    if (Math.abs(dLon) >= 90) return null
+    if (Math.abs(dLon) >= 180) return null
     const la = lat*Math.PI/180, lo = dLon*Math.PI/180
     const th = rotTheta
     const x = Math.cos(la)*Math.sin(lo)
     const y = Math.sin(la), z = Math.cos(la)*Math.cos(lo)
     const y2 = y*Math.cos(th)+z*Math.sin(th)
     const z2 = -y*Math.sin(th)+z*Math.cos(th)
-    if (z2 < 0.01) return null
+    if (z2 < 0) return null  // hotspots hidden on back of globe
     return { x: CX+x*R, y: CY-y2*R, z: z2 }
   }
 }
@@ -189,6 +188,18 @@ export function NektaGlobe() {
       const R = GLOB_R * scaleRef.current
       const CX = SIZE/2, CY = SIZE/2
       const project = makeProjector(rotLonRef.current, rotThetaRef.current, scaleRef.current)
+      // Full-sphere projector for dot grid — allows back hemisphere (negative z)
+      const fullProject = (lat: number, lon: number) => {
+        const CX = SIZE/2, CY = SIZE/2, R = GLOB_R*scaleRef.current
+        const dLon = ((lon - rotLonRef.current + 540) % 360) - 180
+        const la = lat*Math.PI/180, lo = dLon*Math.PI/180
+        const th = rotThetaRef.current
+        const x = Math.cos(la)*Math.sin(lo)
+        const y = Math.sin(la), z2x = Math.cos(la)*Math.cos(lo)
+        const y2 = y*Math.cos(th)+z2x*Math.sin(th)
+        const z2 = -y*Math.sin(th)+z2x*Math.cos(th)
+        return { x: CX+x*R, y: CY-y2*R, z: z2 }
+      }
 
       ctx.clearRect(0, 0, SIZE, SIZE)
 
@@ -203,12 +214,23 @@ export function NektaGlobe() {
 
       const dotR = Math.max(0.55, 1.0*scaleRef.current)
 
-      // Land dots
+      // Land dots — render back hemisphere faintly, front hemisphere normally
       for (const dot of dotsRef.current) {
-        const p = project(dot.lat, dot.lon)
-        if (!p) continue
-        ctx.beginPath(); ctx.arc(p.x, p.y, dotR*(0.3+p.z*0.7), 0, Math.PI*2)
-        ctx.fillStyle = `rgba(255,55,10,${Math.min(1, p.z*0.9).toFixed(2)})`
+        const p = fullProject(dot.lat, dot.lon)
+        const depth = p.z  // positive = front, negative = back
+        if (depth < -0.1) continue  // skip very-back dots (centre of back hemisphere)
+        const absd = Math.abs(depth)
+        const isFront = depth > 0
+        // Front: normal rendering. Back: very faint, tiny dots
+        const r = isFront
+          ? dotR * (0.3 + depth * 0.7)
+          : dotR * 0.25
+        const alpha = isFront
+          ? Math.min(0.92, depth * 0.9)
+          : Math.min(0.18, (0.1 + depth) * 0.6)  // depth is -0.1..0 here → very faint
+        if (alpha < 0.01) continue
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI*2)
+        ctx.fillStyle = `rgba(255,55,10,${alpha.toFixed(2)})`
         ctx.fill()
       }
 
