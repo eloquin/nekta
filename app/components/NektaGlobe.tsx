@@ -48,7 +48,7 @@ const HOTSPOTS: Hotspot[] = [
   { name: 'Milan',       desc: 'Plastic · Amnesia Milano · Club Plastic',     lat: 49.51,  lon: -0.74,   tier: 1 },
   { name: 'Split',       desc: 'Revelin · Vanilla · Club Tropic',             lat: 46.72,  lon: 7.68,    tier: 1 },
   { name: 'Tisno',       desc: 'The Garden · Love International',              lat: 47.40,  lon: 7.06,    tier: 0 },
-  { name: 'Antwerp',     desc: 'Tomorrowland · Cafe d'Anvers · Ampere',      lat: 54.48,  lon: -5.28,   tier: 1 },
+  { name: 'Antwerp',     desc: 'Tomorrowland · Cafe d`Anvers · Ampere',      lat: 54.48,  lon: -5.28,   tier: 1 },
   { name: 'Phuket',      desc: 'Illuzion · Catch Beach Club · Stereo Lab',    lat: 9.71,   lon: 86.31,   tier: 1 },
   { name: 'Rome',        desc: 'Goa Club · Rashomon · Circolo Illuminati',  lat: 45.98,  lon: 2.21,    tier: 0 },
   { name: 'Milan',       desc: 'Plastic · Amnesia Milano · Club Plastic',   lat: 49.51,  lon: -0.74,   tier: 1 },
