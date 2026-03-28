@@ -62,7 +62,7 @@ const HOTSPOTS: Hotspot[] = [
 
 function buildDots(map: Uint8Array) {
   const dots: { lat: number; lon: number }[] = []
-  const STEP = 1.1
+  const STEP = 0.9
   for (let lat = -90+STEP/2; lat < 90; lat += STEP) {
     const num = Math.max(1, Math.round(360*Math.cos(lat*Math.PI/180)/STEP))
     for (let i = 0; i < num; i++) {
@@ -201,7 +201,7 @@ export function NektaGlobe() {
       ctx.save()
       ctx.beginPath(); ctx.arc(CX, CY, Math.min(R-1, SIZE/2-2), 0, Math.PI*2); ctx.clip()
 
-      const dotR = Math.max(0.9, 1.5*scaleRef.current)
+      const dotR = Math.max(0.7, 1.2*scaleRef.current)
 
       // Land dots
       for (const dot of dotsRef.current) {
