@@ -118,6 +118,8 @@ export function NektaGlobe() {
   const dotsRef = useRef<{ lat: number; lon: number }[]>([])
   const pulseRef = useRef(0)
   const spinningRef = useRef(true)
+  const activeHotspotRef = useRef<Hotspot | null>(null)
+  const activeScaleRef = useRef(1)
 
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
   const [spinning, setSpinning] = useState(true)
@@ -126,9 +128,17 @@ export function NektaGlobe() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { spinningRef.current = spinning }, [spinning])
+  useEffect(() => { activeHotspotRef.current = activeHotspot }, [activeHotspot])
 
   const flyTo = useCallback((h: Hotspot) => {
-    targetLonRef.current = h.lon
+    // Smart rotation: find shortest angular path to city
+    // Normalise current lon to same range, then pick direction that covers least distance
+    const current = rotLonRef.current
+    const target = h.lon
+    // Difference mod 360, then shift to -180..180 range for shortest path
+    let diff = ((target - current) % 360 + 360) % 360
+    if (diff > 180) diff -= 360
+    targetLonRef.current = current + diff
     targetThetaRef.current = Math.max(-MAX_THETA, Math.min(MAX_THETA, -(h.lat*Math.PI/180)*0.3))
     setSpinning(false)
     setActiveHotspot(h)
@@ -172,6 +182,9 @@ export function NektaGlobe() {
       rotThetaRef.current += (targetThetaRef.current - rotThetaRef.current) * 0.06
       scaleRef.current += (targetScaleRef.current - scaleRef.current) * 0.08
       pulseRef.current += 0.04
+      // Ease activeScaleRef toward 2 if active, 1 if not
+      const targetAS = activeHotspotRef.current ? 2.2 : 1
+      activeScaleRef.current += (targetAS - activeScaleRef.current) * 0.08
 
       const R = GLOB_R * scaleRef.current
       const CX = SIZE/2, CY = SIZE/2
@@ -203,28 +216,42 @@ export function NektaGlobe() {
       for (const h of HOTSPOTS) {
         const p = project(h.lat, h.lon)
         if (!p) continue
+        const isActive = activeHotspotRef.current?.name === h.name
         const pulse = Math.sin(pulseRef.current + h.lat*0.3) * 0.5 + 0.5
         const ts = h.tier===2 ? 1 : h.tier===1 ? 0.75 : 0.55
+        // Active dot uses animated scale, inactive dots slightly shrink when something else is active
+        const as = isActive ? activeScaleRef.current : (activeHotspotRef.current ? 0.7 : 1)
 
-        // Outer ring
-        const ringR = (7+pulse*9)*ts*scaleRef.current*p.z
+        // Outer ring — bigger and brighter when active
+        const ringR = (7+pulse*9)*ts*scaleRef.current*p.z*as
+        const ringAlpha = isActive ? (0.55-pulse*0.2)*p.z : (0.28-pulse*0.22)*p.z
         ctx.beginPath(); ctx.arc(p.x, p.y, ringR, 0, Math.PI*2)
-        ctx.strokeStyle = `rgba(255,140,30,${((0.28-pulse*0.22)*p.z).toFixed(2)})`
-        ctx.lineWidth = 0.9; ctx.stroke()
+        ctx.strokeStyle = `rgba(255,140,30,${Math.max(0,ringAlpha).toFixed(2)})`
+        ctx.lineWidth = isActive ? 1.5 : 0.9; ctx.stroke()
+
+        // Second ring on active dot — extra pulse
+        if (isActive) {
+          const ring2R = (12+pulse*14)*ts*scaleRef.current*p.z
+          ctx.beginPath(); ctx.arc(p.x, p.y, ring2R, 0, Math.PI*2)
+          ctx.strokeStyle = `rgba(255,180,60,${((0.2-pulse*0.18)*p.z).toFixed(2)})`
+          ctx.lineWidth = 1; ctx.stroke()
+        }
 
         // Glow halo
-        const glowR = (5+pulse*4)*ts*scaleRef.current*p.z
+        const glowR = (5+pulse*4)*ts*scaleRef.current*p.z*as
         const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR)
-        grd.addColorStop(0, `rgba(255,210,90,${(0.95*p.z).toFixed(2)})`)
+        grd.addColorStop(0, `rgba(255,210,90,${(isActive?1:0.95)*p.z})`)
         grd.addColorStop(0.45, `rgba(255,110,15,${(0.5*p.z).toFixed(2)})`)
         grd.addColorStop(1, 'rgba(255,65,10,0)')
         ctx.beginPath(); ctx.arc(p.x, p.y, glowR, 0, Math.PI*2)
         ctx.fillStyle = grd; ctx.fill()
 
-        // Bright core
-        const coreR = (2+pulse*0.7)*ts*scaleRef.current*p.z
+        // Bright core — doubles in size when active
+        const coreR = (2+pulse*0.7)*ts*scaleRef.current*p.z*as
         ctx.beginPath(); ctx.arc(p.x, p.y, coreR, 0, Math.PI*2)
-        ctx.fillStyle = `rgba(255,245,190,${Math.min(1, p.z*1.15).toFixed(2)})`
+        ctx.fillStyle = isActive
+          ? `rgba(255,255,220,${Math.min(1, p.z*1.2).toFixed(2)})`
+          : `rgba(255,245,190,${Math.min(1, p.z*1.15).toFixed(2)})`
         ctx.fill()
       }
 
