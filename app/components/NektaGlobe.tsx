@@ -137,6 +137,8 @@ export function NektaGlobe() {
   const activeScaleRef = useRef(1)
 
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
+  const [calibMode, setCalibMode] = useState(false)
+  const [calibLog, setCalibLog] = useState<string[]>([])
   const [spinning, setSpinning] = useState(true)
   const [events, setEvents] = useState<Record<string, EventData[]>>({})
   const [visible, setVisible] = useState(false)
@@ -322,10 +324,31 @@ export function NektaGlobe() {
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     const mx = (e.clientX - rect.left) * (SIZE / rect.width)
     const my = (e.clientY - rect.top) * (SIZE / rect.height)
+
+    // Calibration mode: reverse-project click to lat/lon
+    if (calibMode) {
+      const CX = SIZE/2, CY = SIZE/2, R = GLOB_R * scaleRef.current
+      const nx = (mx - CX) / R  // normalised -1..1
+      const ny = (CY - my) / R
+      const nz2 = 1 - nx*nx - ny*ny
+      if (nz2 < 0) return  // clicked outside globe
+      const nz = Math.sqrt(nz2)
+      const th = rotThetaRef.current
+      // Reverse tilt rotation
+      const y_world = ny * Math.cos(th) - nz * Math.sin(th)
+      const z_world = ny * Math.sin(th) + nz * Math.cos(th)
+      const lat = Math.asin(Math.max(-1, Math.min(1, y_world))) * 180 / Math.PI
+      const lonRel = Math.atan2(nx, z_world) * 180 / Math.PI
+      const lon = ((lonRel + rotLonRef.current + 180) % 360) - 180
+      const entry = `lat: ${lat.toFixed(2)}, lon: ${lon.toFixed(2)}`
+      setCalibLog(prev => [entry, ...prev].slice(0, 15))
+      return
+    }
+
     const hit = findClickedHotspot(mx, my, rotLonRef.current, rotThetaRef.current, scaleRef.current)
     if (hit) flyTo(hit)
     else dismiss()
-  }, [flyTo, dismiss])
+  }, [flyTo, dismiss, calibMode])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     pointerDownRef.current = true; didDragRef.current = false
@@ -397,6 +420,22 @@ export function NektaGlobe() {
       <button style={S.spinBtn} onClick={() => setSpinning(s => !s)}>
         {spinning ? '⏸' : '▶'} <span style={{fontSize:'7px'}}>{spinning?'PAUSE':'SPIN'}</span>
       </button>
+      <button style={{...S.spinBtn, top:'52px', background: calibMode ? 'rgba(255,65,32,0.25)' : 'none', borderColor: calibMode ? 'rgba(255,65,32,0.6)' : 'rgba(255,65,32,0.2)'}}
+        onClick={() => { setCalibMode(m => !m); setCalibLog([]) }}>
+        {calibMode ? '🎯 CALIB ON' : '🎯 CALIB'}
+      </button>
+      {calibMode && (
+        <div style={S.calibPanel}>
+          <div style={S.calibTitle}>CLICK GLOBE TO GET COORDS</div>
+          <div style={{fontSize:'9px',color:'rgba(255,65,32,0.4)',marginBottom:'8px'}}>Click each city on the map</div>
+          {calibLog.map((entry, i) => (
+            <div key={i} style={S.calibEntry} onClick={() => navigator.clipboard?.writeText(entry)}>
+              {entry} {i===0 && <span style={{color:'rgba(255,65,32,0.4)'}}>← latest</span>}
+            </div>
+          ))}
+          {calibLog.length === 0 && <div style={{fontSize:'9px',color:'rgba(255,65,32,0.25)'}}>No clicks yet</div>}
+        </div>
+      )}
 
       <div style={{position:'relative',width:SIZE,height:SIZE,touchAction:'none'}}>
         {loading && <div style={S.loader}>LOADING...</div>}
@@ -483,5 +522,8 @@ const S: Record<string,React.CSSProperties> = {
   eventMeta:{fontSize:'8px',color:'rgba(255,100,50,0.5)',marginTop:'2px',letterSpacing:'0.06em'},
   eventArtists:{fontSize:'8px',color:'rgba(255,150,80,0.6)',marginTop:'2px',letterSpacing:'0.04em'},
   noEvents:{fontSize:'9px',color:'rgba(255,65,32,0.3)',marginTop:'10px',letterSpacing:'0.06em'},
+  calibPanel:{position:'absolute',top:'80px',right:'20px',background:'rgba(10,4,2,0.97)',border:'1px solid rgba(255,65,32,0.35)',borderRadius:'6px',padding:'12px',width:'240px',zIndex:30,maxHeight:'400px',overflowY:'auto' as const},
+  calibTitle:{fontSize:'9px',fontWeight:700,color:'#ff4120',letterSpacing:'0.15em',marginBottom:'4px'},
+  calibEntry:{fontSize:'10px',color:'rgba(255,200,150,0.9)',padding:'4px 6px',margin:'2px 0',background:'rgba(255,65,32,0.08)',borderRadius:'3px',cursor:'pointer',fontFamily:'monospace'},
   hint:{position:'absolute',bottom:'10px',left:'50%',transform:'translateX(-50%)',fontSize:'8px',color:'rgba(255,65,32,0.2)',letterSpacing:'0.1em',textTransform:'uppercase',whiteSpace:'nowrap'},
 }
