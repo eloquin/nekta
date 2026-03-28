@@ -72,7 +72,22 @@ function buildDots(map: Uint8Array) {
   return dots
 }
 
-const SIZE = 580, GLOB_R = 270, MAX_THETA = 0.48
+// Snap each hotspot to the nearest actual Fibonacci dot
+function snapHotspots(dots: { lat: number; lon: number }[], hotspots: Hotspot[]) {
+  const snapped: Record<string, { lat: number; lon: number }> = {}
+  for (const h of hotspots) {
+    let best = h, bestD = Infinity
+    for (const d of dots) {
+      const dlat = d.lat - h.lat, dlon = d.lon - h.lon
+      const dist = dlat*dlat + dlon*dlon
+      if (dist < bestD) { bestD = dist; best = d }
+    }
+    snapped[h.name] = best
+  }
+  return snapped
+}
+
+const SIZE = 580, GLOB_R = 270, MAX_THETA = Math.PI / 2
 
 // Project lat/lon to screen xy — returns null if on back of globe
 function makeProjector(rotLon: number, rotTheta: number, scale: number) {
@@ -115,6 +130,7 @@ export function NektaGlobe() {
   const pinchRef = useRef(0), rafRef = useRef(0)
   const didDragRef = useRef(false)
   const dotsRef = useRef<{ lat: number; lon: number }[]>([])
+  const snappedRef = useRef<Record<string, { lat: number; lon: number }>>({}) 
   const pulseRef = useRef(0)
   const spinningRef = useRef(true)
   const activeHotspotRef = useRef<Hotspot | null>(null)
@@ -171,6 +187,7 @@ export function NektaGlobe() {
 
     buildLandMap().then(map => {
       dotsRef.current = buildDots(map)
+      snappedRef.current = snapHotspots(dotsRef.current, HOTSPOTS)
       setLoading(false)
       setTimeout(() => setVisible(true), 100)
     })
@@ -226,17 +243,18 @@ export function NektaGlobe() {
           ? dotR * (0.3 + depth * 0.7)
           : dotR * 0.25
         const alpha = isFront
-          ? Math.min(0.92, depth * 0.9)
-          : Math.min(0.18, (0.1 + depth) * 0.6)  // depth is -0.1..0 here → very faint
+          ? Math.min(1.0, 0.4 + depth * 0.65)
+          : Math.min(0.12, (0.1 + depth) * 0.5)
         if (alpha < 0.01) continue
         ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI*2)
         ctx.fillStyle = `rgba(255,55,10,${alpha.toFixed(2)})`
         ctx.fill()
       }
 
-      // Hotspot dots — drawn ON TOP of land dots
+      // Hotspot dots — snapped to nearest Fibonacci dot position
       for (const h of HOTSPOTS) {
-        const p = project(h.lat, h.lon)
+        const snap = snappedRef.current[h.name] ?? h
+        const p = project(snap.lat, snap.lon)
         if (!p) continue
         const isActive = activeHotspotRef.current?.name === h.name
         const pulse = Math.sin(pulseRef.current + h.lat*0.3) * 0.5 + 0.5
