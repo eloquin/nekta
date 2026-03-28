@@ -28,77 +28,276 @@ function isLand(map: Uint8Array, lat: number, lon: number): boolean {
   return map[row*MAP_W+col] === 1
 }
 
-interface Hotspot { name: string; desc: string; lat: number; lon: number; tier: 0|1|2 }
+interface Festival { name: string; url: string }
+interface Hotspot { name: string; desc: string; lat: number; lon: number; tier: 0|1|2; festivals?: Festival[] }
 interface EventData { id: string; title: string; startTime: string; venue?: { name: string }; artists?: { name: string }[] }
 
 // Precise GPS coordinates verified
 const HOTSPOTS: Hotspot[] = [
   // Europe
-  { name: 'London',      desc: 'Fabric · Egg · Printworks',              lat: 56.28,  lon: -10.46,  tier: 2 },
-  { name: 'Bristol',     desc: 'Motion · Marble Factory · Thekla',       lat: 55.76,  lon: -13.16,  tier: 1 },
-  { name: 'Manchester',  desc: 'Warehouse Project · Refuge · YES',       lat: 57.61,  lon: -12.57,  tier: 1 },
-  { name: 'Paris',       desc: 'Rex Club · Concrete · Batofar',          lat: 53.25,  lon: -8.37,   tier: 2 },
-  { name: 'Berlin',      desc: 'Berghain · Tresor · Watergate',          lat: 56.94,  lon: 1.79,    tier: 2 },
-  { name: 'Barcelona',   desc: 'Razzmatazz · Input · Apolo',             lat: 45.31,  lon: -8.32,   tier: 1 },
-  { name: 'Ibiza',       desc: 'DC10 · Pacha · Amnesia',                 lat: 42.14,  lon: -9.1,   tier: 2 },
-  { name: 'Amsterdam',   desc: 'Shelter · Awakenings · ADE',             lat: 56.63,  lon: -4.39,   tier: 1 },
-  { name: 'Prague',      desc: 'Ankali · Cross Club',                    lat: 54.38,  lon: -1.57,   tier: 0 },
-  { name: 'Zurich',      desc: 'Hive · Zukunft · Supermarket',           lat: 52.19,  lon: -2.19,   tier: 0 },
-  { name: 'Rome',        desc: 'Goa Club · Rashomon · Circolo Illuminati',    lat: 45.98,  lon: 2.21,    tier: 0 },
-  { name: 'Milan',       desc: 'Plastic · Amnesia Milano · Club Plastic',     lat: 49.51,  lon: -0.74,   tier: 1 },
-  { name: 'Split',       desc: 'Revelin · Vanilla · Club Tropic',             lat: 46.72,  lon: 7.68,    tier: 1 },
-  { name: 'Tisno',       desc: 'The Garden · Love International',              lat: 47.40,  lon: 7.06,    tier: 0 },
-  { name: 'Antwerp',     desc: 'Tomorrowland · Cafe d`Anvers · Ampere',      lat: 54.48,  lon: -5.28,   tier: 1 },
-  { name: 'Phuket',      desc: 'Illuzion · Catch Beach Club · Stereo Lab',    lat: 9.71,   lon: 86.31,   tier: 1 },
-  { name: 'Rome',        desc: 'Goa Club · Rashomon · Circolo Illuminati',  lat: 45.98,  lon: 2.21,    tier: 0 },
-  { name: 'Milan',       desc: 'Plastic · Amnesia Milano · Club Plastic',   lat: 49.51,  lon: -0.74,   tier: 1 },
-  { name: 'Split',       desc: 'Revelin · Vanilla · Club Tropic',           lat: 46.72,  lon: 7.68,    tier: 1 },
-  { name: 'Tisno',       desc: 'The Garden · Love International',            lat: 47.40,  lon: 7.06,    tier: 0 },
+  { name: 'London',      desc: 'Fabric · Egg · Printworks',              lat: 56.28,  lon: -10.46,  tier: 2,
+    festivals: [
+      { name: 'Fabric London',          url: 'https://www.fabriclondon.com' },
+      { name: 'Junction 2',             url: 'https://junction2.london' },
+      { name: 'Creamfields North',      url: 'https://www.creamfields.com' },
+    ]},
+  { name: 'Bristol',     desc: 'Motion · Marble Factory · Thekla',       lat: 55.76,  lon: -13.16,  tier: 1,
+    festivals: [
+      { name: 'Boomtown Fair',          url: 'https://www.boomtownfair.co.uk' },
+      { name: 'Love Saves the Day',     url: 'https://lovesavestheday.org' },
+      { name: 'Harbour Festival',       url: 'https://www.bristolharbourfestival.co.uk' },
+    ]},
+  { name: 'Manchester',  desc: 'Warehouse Project · Refuge · YES',       lat: 57.61,  lon: -12.57,  tier: 1,
+    festivals: [
+      { name: 'Parklife',               url: 'https://parklife.uk.com' },
+      { name: 'Warehouse Project',      url: 'https://www.thewarehouseproject.com' },
+      { name: 'Bluedot',               url: 'https://www.discoverbluedot.com' },
+    ]},
+  { name: 'Paris',       desc: 'Rex Club · Concrete · Batofar',          lat: 53.25,  lon: -8.37,   tier: 2,
+    festivals: [
+      { name: 'Pitchfork Music Festival', url: 'https://pitchforkmusicfestival.fr' },
+      { name: 'We Love Green',          url: 'https://welovegreen.fr' },
+      { name: 'Lollapalooza Paris',     url: 'https://www.lollapaloozafr.com' },
+    ]},
+  { name: 'Berlin',      desc: 'Berghain · Tresor · Watergate',          lat: 56.94,  lon: 1.79,    tier: 2,
+    festivals: [
+      { name: 'Lollapalooza Berlin',    url: 'https://www.lollapaloozade.com' },
+      { name: 'Berlin Festival',        url: 'https://www.berlinfestival.de' },
+      { name: 'Fusion Festival',        url: 'https://www.fusion-festival.de' },
+    ]},
+  { name: 'Barcelona',   desc: 'Razzmatazz · Input · Apolo',             lat: 45.31,  lon: -8.32,   tier: 1,
+    festivals: [
+      { name: 'Sónar Festival',         url: 'https://sonar.es' },
+      { name: 'Primavera Sound',        url: 'https://www.primaverasound.com' },
+      { name: 'Brunch Electronik',      url: 'https://www.brunchelectronik.com' },
+    ]},
+  { name: 'Ibiza',       desc: 'DC10 · Pacha · Amnesia',                 lat: 42.14,  lon: -9.10,   tier: 2,
+    festivals: [
+      { name: 'IMS Ibiza',              url: 'https://www.internationalmusicsummit.com' },
+      { name: 'Defected Ibiza',         url: 'https://defected.com' },
+      { name: 'Elrow Ibiza',            url: 'https://elrow.com' },
+    ]},
+  { name: 'Amsterdam',   desc: 'Shelter · Awakenings · ADE',             lat: 56.63,  lon: -4.39,   tier: 1,
+    festivals: [
+      { name: 'Amsterdam Dance Event',  url: 'https://www.amsterdam-dance-event.nl' },
+      { name: 'Awakenings Festival',    url: 'https://awakenings.com' },
+      { name: 'DGTL Festival',          url: 'https://dgtl.nl' },
+    ]},
+  { name: 'Prague',      desc: 'Ankali · Cross Club',                    lat: 54.38,  lon: -1.57,   tier: 0,
+    festivals: [
+      { name: 'United Islands',         url: 'https://www.unitedislands.cz' },
+    ]},
+  { name: 'Zurich',      desc: 'Hive · Zukunft · Supermarket',           lat: 52.19,  lon: -2.19,   tier: 0,
+    festivals: [
+      { name: 'Street Parade',          url: 'https://www.street-parade.com' },
+    ]},
+  { name: 'Rome',        desc: 'Goa Club · Rashomon · Circolo Illuminati', lat: 45.98,  lon: 2.21,  tier: 0,
+    festivals: [
+      { name: 'Medimex',               url: 'https://www.medimex.it' },
+    ]},
+  { name: 'Milan',       desc: 'Plastic · Amnesia Milano · Club Plastic', lat: 49.51,  lon: -0.74,  tier: 1,
+    festivals: [
+      { name: 'Linecheck Festival',     url: 'https://www.linecheckfestival.com' },
+      { name: 'MI AMI Festival',        url: 'https://www.miamifestival.it' },
+    ]},
+  { name: 'Split',       desc: 'Revelin · Vanilla · Club Tropic',        lat: 45.46,  lon: 8.44,    tier: 1,
+    festivals: [
+      { name: 'Ultra Europe',           url: 'https://ultraeurope.com' },
+      { name: 'Hideout Festival',       url: 'https://www.hideoutfestival.com' },
+    ]},
+  { name: 'Tisno',       desc: 'The Garden · Love International',        lat: 47.40,  lon: 7.06,    tier: 0,
+    festivals: [
+      { name: 'Love International',     url: 'https://loveinternational.hr' },
+      { name: 'The Garden Festival',    url: 'https://thegardenfestival.eu' },
+      { name: 'Dekmantel Selectors',    url: 'https://dekmantel.com' },
+    ]},
+  { name: 'Antwerp',     desc: 'Tomorrowland · Cafe d`Anvers · Ampere',  lat: 54.48,  lon: -5.28,   tier: 1,
+    festivals: [
+      { name: 'Tomorrowland',           url: 'https://www.tomorrowland.com' },
+    ]},
   // North America
-  { name: 'New York',    desc: 'Output · House of Yes · Nowadays',       lat: 42.88,  lon: -83.81,  tier: 2 },
-  { name: 'Boston',      desc: 'Bijou · Rise · Royale',                  lat: 46.77,  lon: -80.59,  tier: 0 },
-  { name: 'Toronto',     desc: 'Coda · Rebel · Velvet Underground',      lat: 47.59,  lon: -88.99,  tier: 1 },
-  { name: 'Detroit',     desc: 'Movement Festival · CODA',               lat: 45.98,  lon: -94.10,  tier: 1 },
-  { name: 'Miami',       desc: 'LIV · Club Space · Do Not Sit',          lat: 28.25,  lon: -89.82,  tier: 1 },
-  { name: 'Chicago',     desc: 'Smart Bar · Spy Bar · Spybar',           lat: 41.88,  lon: -87.63,  tier: 1 },
-  { name: 'Denver',      desc: 'Temple · Summit Music Hall',             lat: 43.43,  lon: -113.30, tier: 0 },
-  { name: 'Las Vegas',   desc: 'Omnia · Hakkasan · XS',                  lat: 40.39,  lon: -123.17, tier: 0 },
-  { name: 'LA',          desc: 'Exchange · Catch One · EDC',             lat: 37.76,  lon: -127.02, tier: 1 },
+  { name: 'New York',    desc: 'Output · House of Yes · Nowadays',       lat: 42.88,  lon: -83.81,  tier: 2,
+    festivals: [
+      { name: 'Electric Zoo',           url: 'https://electriczoofestival.com' },
+      { name: 'Governors Ball',         url: 'https://www.governorsballmusicfestival.com' },
+    ]},
+  { name: 'Boston',      desc: 'Bijou · Rise · Royale',                  lat: 46.77,  lon: -80.59,  tier: 0,
+    festivals: [
+      { name: 'Boston Calling',         url: 'https://bostoncalling.com' },
+    ]},
+  { name: 'Toronto',     desc: 'Coda · Rebel · Velvet Underground',      lat: 47.59,  lon: -88.99,  tier: 1,
+    festivals: [
+      { name: 'VELD Music Festival',    url: 'https://veldmusicfestival.com' },
+      { name: 'Digital Dreams',         url: 'https://digitaldreamsfestival.com' },
+    ]},
+  { name: 'Detroit',     desc: 'Movement Festival · CODA',               lat: 46.15,  lon: -92.73,  tier: 1,
+    festivals: [
+      { name: 'Movement Electronic Music Festival', url: 'https://movementfestival.com' },
+    ]},
+  { name: 'Miami',       desc: 'LIV · Club Space · Do Not Sit',          lat: 28.25,  lon: -89.82,  tier: 1,
+    festivals: [
+      { name: 'Ultra Music Festival',   url: 'https://www.ultramusicfestival.com' },
+      { name: 'Miami Music Week',       url: 'https://miamimusicweek.com' },
+    ]},
+  { name: 'Chicago',     desc: 'Smart Bar · Spy Bar · Spybar',           lat: 46.24,  lon: -97.27,  tier: 1,
+    festivals: [
+      { name: 'Lollapalooza Chicago',   url: 'https://www.lollapalooza.com' },
+      { name: 'Spring Awakening',       url: 'https://www.springawakeningfestival.com' },
+    ]},
+  { name: 'Denver',      desc: 'Temple · Summit Music Hall',             lat: 43.43,  lon: -113.30, tier: 0,
+    festivals: [
+      { name: 'Global Dance Festival',  url: 'https://globaldancefestival.com' },
+    ]},
+  { name: 'Las Vegas',   desc: 'Omnia · Hakkasan · XS',                  lat: 40.39,  lon: -123.17, tier: 0,
+    festivals: [
+      { name: 'EDC Las Vegas',          url: 'https://lasvegas.electricdaisycarnival.com' },
+    ]},
+  { name: 'LA',          desc: 'Exchange · Catch One · EDC',             lat: 37.76,  lon: -127.02, tier: 1,
+    festivals: [
+      { name: 'HARD Summer',            url: 'https://hardfest.com' },
+      { name: 'Beyond Wonderland',      url: 'https://www.beyondwonderland.com' },
+    ]},
   // South America
-  { name: 'Bogota',      desc: 'Baum · Video Club · Armando',            lat: 4.84,   lon: -82.75,  tier: 0 },
-  { name: 'Rio',         desc: 'Fosfobox · Green Valley',                lat: -22.76, lon: -52.96,  tier: 1 },
-  { name: 'Sao Paulo',   desc: 'D-Edge · Lov · The Week',                lat: -23.13, lon: -56.80,  tier: 1 },
-  { name: 'Buenos Aires',desc: 'Crobar · Creamfields · Niceto',          lat: -36.33, lon: -68.18,  tier: 1 },
+  { name: 'Bogota',      desc: 'Baum · Video Club · Armando',            lat: 4.84,   lon: -82.75,  tier: 0,
+    festivals: [
+      { name: 'Estéreo Picnic',         url: 'https://www.estereopicnic.com' },
+    ]},
+  { name: 'Rio',         desc: 'Fosfobox · Green Valley',                lat: -22.76, lon: -52.96,  tier: 1,
+    festivals: [
+      { name: 'Rock in Rio',            url: 'https://rockinrio.com' },
+      { name: 'Lollapalooza Brasil',    url: 'https://www.lollapaloozabr.com' },
+    ]},
+  { name: 'Sao Paulo',   desc: 'D-Edge · Lov · The Week',                lat: -23.13, lon: -56.80,  tier: 1,
+    festivals: [
+      { name: 'Lollapalooza Brasil',    url: 'https://www.lollapaloozabr.com' },
+      { name: 'Tomorrowland Brasil',    url: 'https://www.tomorrowlandbrasil.com' },
+    ]},
+  { name: 'Buenos Aires', desc: 'Crobar · Creamfields · Niceto',         lat: -36.33, lon: -68.18,  tier: 1,
+    festivals: [
+      { name: 'Lollapalooza Argentina', url: 'https://www.lollapaloozaar.com' },
+      { name: 'Creamfields Buenos Aires', url: 'https://creamfields.com' },
+    ]},
   // Africa & Middle East
-  { name: 'Cape Town',   desc: 'Shimmy Beach · Cause Effect',            lat: -34.55, lon: 7.41,    tier: 0 },
-  { name: 'Dubai',       desc: 'White Dubai · Soho Garden',              lat: 27.28,  lon: 44.14,   tier: 1 },
+  { name: 'Cape Town',   desc: 'Shimmy Beach · Cause Effect',            lat: -34.55, lon: 7.41,    tier: 0,
+    festivals: [
+      { name: 'Cape Town Electronic Music Festival', url: 'https://ctemf.com' },
+    ]},
+  { name: 'Dubai',       desc: 'White Dubai · Soho Garden',              lat: 27.28,  lon: 44.14,   tier: 1,
+    festivals: [
+      { name: 'Untold Dubai',           url: 'https://untold.com' },
+      { name: 'Creamfields Dubai',      url: 'https://creamfields.com' },
+    ]},
   // South Asia
-  { name: 'Goa',         desc: 'Hilltop · Curlies · Cafe Mambo',        lat: 18.00,  lon: 62.00,   tier: 1 },
-  { name: 'Mumbai',      desc: 'Tryst · Blue Frog · Kitty Su',           lat: 22.35,  lon: 61.55,   tier: 0 },
-  { name: 'Hyderabad',   desc: 'Playboy Club · Ten · Farzi Cafe',        lat: 19.68,  lon: 67.51,   tier: 0 },
+  { name: 'Goa',         desc: 'Hilltop · Curlies · Cafe Mambo',         lat: 18.00,  lon: 62.00,   tier: 1,
+    festivals: [
+      { name: 'Sunburn Festival',       url: 'https://www.sunburn.in' },
+      { name: 'Supersonic Festival',    url: 'https://www.supersonic.live' },
+    ]},
+  { name: 'Mumbai',      desc: 'Tryst · Blue Frog · Kitty Su',           lat: 22.35,  lon: 61.55,   tier: 0,
+    festivals: [
+      { name: 'Lollapalooza India',     url: 'https://www.lollapaloozain.com' },
+      { name: 'VH1 Supersonic',        url: 'https://www.supersonic.live' },
+    ]},
+  { name: 'Hyderabad',   desc: 'Playboy Club · Ten · Farzi Cafe',        lat: 19.68,  lon: 67.51,   tier: 0,
+    festivals: [
+      { name: 'NH7 Weekender',          url: 'https://www.weekender.in' },
+    ]},
   // SE Asia
-  { name: 'Yangon',      desc: 'GTR · Club Zero · Mojo',                 lat: 19.42,  lon: 83.69,   tier: 0 },
-  { name: 'Bangkok',     desc: 'De Commune · Onyx · Beam',               lat: 16.24,  lon: 88.16,   tier: 2 },
-  { name: 'Koh Phangan', desc: 'Full Moon Party · Shiva Moon',           lat: 10.50,  lon: 88.94,   tier: 1 },
-  { name: 'Chiang Mai',  desc: 'Zoe in Yellow · Spicy · Maya',           lat: 22.11,  lon: 87.57,   tier: 0 },
-  { name: 'Ho Chi Minh', desc: 'Lush · Savage · Broma',                  lat: 13.44,  lon: 94.66,   tier: 0 },
-  { name: 'Hanoi',       desc: 'Savage · Broma · Gong',                  lat: 23.75,  lon: 92.75,   tier: 0 },
-  { name: 'Jakarta',     desc: 'Dragonfly · Colosseum · X2',             lat: -6.21,  lon: 94.92,   tier: 0 },
-  { name: 'Bali',        desc: 'Potato Head · La Favela · Mirror',       lat: -8.91,  lon: 104.43,  tier: 1 },
+  { name: 'Yangon',      desc: 'GTR · Club Zero · Mojo',                 lat: 19.42,  lon: 83.69,   tier: 0,
+    festivals: [] },
+  { name: 'Bangkok',     desc: 'De Commune · Onyx · Beam',               lat: 16.24,  lon: 88.16,   tier: 2,
+    festivals: [
+      { name: 'Together Festival',      url: 'https://www.togetherfestival.com' },
+      { name: 'S2O Songkran',          url: 'https://www.s2ofestival.com' },
+    ]},
+  { name: 'Koh Phangan', desc: 'Full Moon Party · Shiva Moon',           lat: 10.50,  lon: 88.94,   tier: 1,
+    festivals: [
+      { name: 'Full Moon Party',        url: 'https://fullmoonparty-thailand.com' },
+      { name: 'Wonderfruit',            url: 'https://www.wonderfruit.co' },
+    ]},
+  { name: 'Chiang Mai',  desc: 'Zoe in Yellow · Spicy · Maya',           lat: 22.11,  lon: 87.57,   tier: 0,
+    festivals: [
+      { name: 'Wonderfruit',            url: 'https://www.wonderfruit.co' },
+    ]},
+  { name: 'Phuket',      desc: 'Illuzion · Catch Beach Club · Stereo Lab', lat: 9.71,   lon: 86.31, tier: 1,
+    festivals: [
+      { name: 'EDC Thailand',           url: 'https://thailand.electricdaisycarnival.com' },
+      { name: 'DnB Allstars Thailand',  url: 'https://www.dnballstars.com/whats-on/thailand-2026' },
+      { name: 'Tomorrowland Thailand',  url: 'https://www.tomorrowland.com' },
+    ]},
+  { name: 'Ho Chi Minh', desc: 'Lush · Savage · Broma',                  lat: 13.44,  lon: 94.66,   tier: 0,
+    festivals: [
+      { name: 'EMF Vietnam',            url: 'https://www.emfvietnam.com' },
+    ]},
+  { name: 'Hanoi',       desc: 'Savage · Broma · Gong',                  lat: 23.75,  lon: 92.75,   tier: 0,
+    festivals: [] },
+  { name: 'Jakarta',     desc: 'Dragonfly · Colosseum · X2',             lat: -6.21,  lon: 94.92,   tier: 0,
+    festivals: [
+      { name: 'Djakarta Warehouse Project', url: 'https://djakartawarehouseproject.com' },
+    ]},
+  { name: 'Bali',        desc: 'Potato Head · La Favela · Mirror',       lat: -8.91,  lon: 104.43,  tier: 1,
+    festivals: [
+      { name: 'Bali Spirit Festival',   url: 'https://www.balispiritfestival.com' },
+      { name: 'Sunny Side Up',          url: 'https://sunnysideupfest.com' },
+    ]},
   // East Asia
-  { name: 'Hong Kong',   desc: 'Drop · Volar · Fly',                     lat: 25.95,  lon: 102.59,  tier: 1 },
-  { name: 'Shanghai',    desc: 'The Shelter · Linx · M2',                lat: 34.75,  lon: 108.43,  tier: 1 },
-  { name: 'Beijing',     desc: 'Dada · Lantern · Cargo',                 lat: 43.87,  lon: 106.18,  tier: 0 },
-  { name: 'Seoul',       desc: 'Cakeshop · Contra · Boogie Nights',      lat: 41.28,  lon: 114.21,  tier: 1 },
-  { name: 'Tokyo',       desc: 'Womb · Contact · Dommune',               lat: 39.53,  lon: 127.84,  tier: 2 },
-  { name: 'Osaka',       desc: 'Circus · Triangle · Sound Bar σ',        lat: 37.92,  lon: 123.23,  tier: 1 },
+  { name: 'Hong Kong',   desc: 'Drop · Volar · Fly',                     lat: 25.95,  lon: 102.59,  tier: 1,
+    festivals: [
+      { name: 'Clockenflap',            url: 'https://www.clockenflap.com' },
+    ]},
+  { name: 'Shanghai',    desc: 'The Shelter · Linx · M2',                lat: 34.75,  lon: 108.43,  tier: 1,
+    festivals: [
+      { name: 'Shanghai Music Festival', url: 'https://www.shanghaimusicfestival.com' },
+      { name: 'Storm Festival',         url: 'https://stormfestival.com' },
+    ]},
+  { name: 'Beijing',     desc: 'Dada · Lantern · Cargo',                 lat: 43.87,  lon: 106.18,  tier: 0,
+    festivals: [
+      { name: 'Strawberry Music Festival', url: 'https://www.modernsky.com' },
+    ]},
+  { name: 'Seoul',       desc: 'Cakeshop · Contra · Boogie Nights',      lat: 41.28,  lon: 114.21,  tier: 1,
+    festivals: [
+      { name: 'Ultra Korea',            url: 'https://ultrakorea.com' },
+      { name: 'Electronic Music Festival Korea', url: 'https://emfkorea.com' },
+    ]},
+  { name: 'Tokyo',       desc: 'Womb · Contact · Dommune',               lat: 39.53,  lon: 127.84,  tier: 2,
+    festivals: [
+      { name: 'Ultra Japan',            url: 'https://ultrajapan.com' },
+      { name: 'Fuji Rock Festival',     url: 'https://www.fujirockfestival.com' },
+      { name: 'Rainbow Disco Club',     url: 'https://rainbowdiscoclub.com' },
+    ]},
+  { name: 'Osaka',       desc: 'Circus · Triangle · Sound Bar σ',        lat: 37.92,  lon: 123.23,  tier: 1,
+    festivals: [
+      { name: 'Osaka Music Festival',   url: 'https://osakamusic.jp' },
+    ]},
   // Oceania
-  { name: 'Melbourne',   desc: 'Revolver · Brown Alley · 161',           lat: -39.11, lon: 131.97,  tier: 2 },
-  { name: 'Sydney',      desc: 'Chinese Laundry · Ivy · Marquee',        lat: -33.98, lon: 139.26,  tier: 1 },
-  { name: 'Adelaide',    desc: 'The Gov · Jive · Exeter',                lat: -35.62, lon: 125.82,  tier: 0 },
-  { name: 'Brisbane',    desc: 'Cloudland · The Triffid · Fortitude',    lat: -26.64, lon: 139.83,  tier: 0 },
-  { name: 'Perth',       desc: 'Villa · Geisha · Mint',                  lat: -32.22, lon: 104.00,  tier: 0 },
-  { name: 'Auckland',    desc: 'Impala · Cassette · Neck of the Woods',  lat: -38.28, lon: 162.05,  tier: 0 },
+  { name: 'Melbourne',   desc: 'Revolver · Brown Alley · 161',           lat: -39.11, lon: 131.97,  tier: 2,
+    festivals: [
+      { name: 'Listen Out',             url: 'https://listenout.com.au' },
+      { name: 'Pitch Music Festival',   url: 'https://pitchfestival.com.au' },
+      { name: 'Rainbow Serpent',        url: 'https://www.rainbowserpent.net' },
+    ]},
+  { name: 'Sydney',      desc: 'Chinese Laundry · Ivy · Marquee',        lat: -33.98, lon: 139.26,  tier: 1,
+    festivals: [
+      { name: 'Splendour in the Grass', url: 'https://www.splendourinthegrass.com' },
+      { name: 'Listen Out Sydney',      url: 'https://listenout.com.au' },
+    ]},
+  { name: 'Adelaide',    desc: 'The Gov · Jive · Exeter',                lat: -35.62, lon: 125.82,  tier: 0,
+    festivals: [
+      { name: 'Womadelaide',            url: 'https://womadelaide.com.au' },
+    ]},
+  { name: 'Brisbane',    desc: 'Cloudland · The Triffid · Fortitude',    lat: -26.64, lon: 139.83,  tier: 0,
+    festivals: [
+      { name: 'Rabbits Eat Lettuce',    url: 'https://rabbitseatletttuce.com.au' },
+    ]},
+  { name: 'Perth',       desc: 'Villa · Geisha · Mint',                  lat: -32.22, lon: 104.00,  tier: 0,
+    festivals: [
+      { name: 'Strawberry Fields',      url: 'https://strawberryfields.net.au' },
+    ]},
+  { name: 'Auckland',    desc: 'Impala · Cassette · Neck of the Woods',  lat: -38.28, lon: 162.05,  tier: 0,
+    festivals: [
+      { name: 'Rhythm and Vines',       url: 'https://www.rhythmandvines.co.nz' },
+      { name: 'Laneway Festival',       url: 'https://www.lanewayfestival.com' },
+    ]},
 ]
 
 function buildDots(map: Uint8Array) {
@@ -510,9 +709,22 @@ export function NektaGlobe() {
             </div>
             <button onClick={dismiss} style={S.closeBtn}>✕</button>
           </div>
-          {cityEvents.length > 0 ? (
+          {/* Festivals section */}
+          {activeHotspot.festivals && activeHotspot.festivals.length > 0 && (
             <div style={S.eventsWrap}>
-              <div style={S.eventsTitle}>THIS WEEK</div>
+              <div style={S.eventsTitle}>FESTIVALS & EVENTS</div>
+              {activeHotspot.festivals.map(f => (
+                <a key={f.name} href={f.url} target="_blank" rel="noopener noreferrer" style={S.festivalLink}>
+                  <span style={S.festivalDot}>↗</span>
+                  {f.name}
+                </a>
+              ))}
+            </div>
+          )}
+          {/* Live RA events section */}
+          {cityEvents.length > 0 && (
+            <div style={{...S.eventsWrap, marginTop: activeHotspot.festivals?.length ? '8px' : '0'}}>
+              <div style={S.eventsTitle}>THIS WEEK ON RA</div>
               {cityEvents.map(ev => (
                 <div key={ev.id} style={S.eventRow}>
                   <div style={S.eventName}>{ev.title}</div>
@@ -526,8 +738,6 @@ export function NektaGlobe() {
                 </div>
               ))}
             </div>
-          ) : (
-            <div style={S.noEvents}>No live data · check RA for listings</div>
           )}
         </div>
       )}
@@ -563,6 +773,8 @@ const S: Record<string,React.CSSProperties> = {
   eventMeta:{fontSize:'8px',color:'rgba(255,100,50,0.5)',marginTop:'2px',letterSpacing:'0.06em'},
   eventArtists:{fontSize:'8px',color:'rgba(255,150,80,0.6)',marginTop:'2px',letterSpacing:'0.04em'},
   noEvents:{fontSize:'9px',color:'rgba(255,65,32,0.3)',marginTop:'10px',letterSpacing:'0.06em'},
+  festivalLink:{display:'block',fontSize:'10px',color:'rgba(255,180,80,0.9)',padding:'5px 8px',margin:'2px 0',background:'rgba(255,65,32,0.08)',borderRadius:'4px',textDecoration:'none',letterSpacing:'0.04em',border:'1px solid rgba(255,65,32,0.15)',transition:'background 0.15s'},
+  festivalDot:{marginRight:'6px',color:'rgba(255,65,32,0.6)',fontSize:'11px'},
   calibPanel:{position:'absolute',top:'80px',right:'20px',background:'rgba(10,4,2,0.97)',border:'1px solid rgba(255,65,32,0.35)',borderRadius:'6px',padding:'12px',width:'240px',zIndex:30,maxHeight:'400px',overflowY:'auto' as const},
   calibTitle:{fontSize:'9px',fontWeight:700,color:'#ff4120',letterSpacing:'0.15em',marginBottom:'4px'},
   calibEntry:{fontSize:'10px',color:'rgba(255,200,150,0.9)',padding:'4px 6px',margin:'2px 0',background:'rgba(255,65,32,0.08)',borderRadius:'3px',cursor:'pointer',fontFamily:'monospace'},
