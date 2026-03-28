@@ -76,7 +76,7 @@ function buildDots(map: Uint8Array) {
 function snapHotspots(dots: { lat: number; lon: number }[], hotspots: Hotspot[]) {
   const snapped: Record<string, { lat: number; lon: number }> = {}
   for (const h of hotspots) {
-    let best = h, bestD = Infinity
+    let best: { lat: number; lon: number } = { lat: h.lat, lon: h.lon }, bestD = Infinity
     for (const d of dots) {
       const dlat = d.lat - h.lat, dlon = d.lon - h.lon
       const dist = dlat*dlat + dlon*dlon
