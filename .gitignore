@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# nekta engine
+/engine/build/
+/engine/examples/*.wav

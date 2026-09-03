@@ -1,0 +1,28 @@
+name: engine
+
+on:
+  push:
+    paths:
+      - 'engine/**'
+      - '.github/workflows/engine.yml'
+  pull_request:
+    paths:
+      - 'engine/**'
+      - '.github/workflows/engine.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S engine -B engine/build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Build
+        run: cmake --build engine/build -j
+      # Runs with NEKTA_RT_CHECKS on: any audio-thread allocation fails the build.
+      - name: Test
+        run: ctest --test-dir engine/build --output-on-failure
+      - name: Render the demo performance
+        run: |
+          python3 engine/examples/make_demo_wav.py
+          engine/build/nekta_render engine/examples/jungle_roll.nks -o /tmp/roll.wav
