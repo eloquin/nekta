@@ -44,7 +44,7 @@ _The repo doesn't have a "cards" feature yet. This assumes cards are per-event o
 - Card artwork and metadata go to Arweave or Irys. Fast reads still come from our own DB plus a Helius/Triton DAS indexer.
 
 ### What going on-chain unlocks (lead the pitch with these)
-1. **Proof-of-attendance "rave passport":** a verifiable history of events attended, scanned at the door or claimed by GPS plus a promoter-signed QR code. The globe becomes each user's personal map.
+1. **Proof-of-attendance "rave passport":** a verifiable history of events attended, scanned at the door or claimed by GPS plus a promoter-signed QR code.
 2. **Promoter and artist perks:** holders of card X get presale access, guestlist spots or merch drops. Any partner can check this without integrating with our backend.
 3. **Rewards and payments:** Solana Pay / USDC for tickets and drinks, with loyalty points tied to the cards.
 4. **Optional later step, ticketing:** resale with price caps and royalties. Partner with KYD/TICKS here rather than rebuilding it.
@@ -59,7 +59,7 @@ _The repo doesn't have a "cards" feature yet. This assumes cards are per-event o
 
 ## 5. Next steps
 1. Get the contact's name and fund from Jack, then look up their recent Solana deals.
-2. Write a one-page deck: problem → Nekta globe → rave passport on Solana → traction → ask.
+2. Write a one-page deck: problem → Nekta (event discovery + card marketplace) → collectible cards and passes on Solana → traction → ask.
 3. Build the Phase 1 devnet demo before the call if possible.
 4. In parallel, join the next Colosseum hackathon as a backup route to $250k.
 5. Apply for a Solana Foundation or Superteam grant for the open-source parts, e.g. a proof-of-attendance claim program.

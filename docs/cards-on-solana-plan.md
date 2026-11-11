@@ -2,6 +2,8 @@
 
 _Draft dated 11 Nov 2026. All prices are **estimates**. Check them with each vendor before quoting to investors. SOL is assumed at about $180._
 
+**Where the cards live:** the Nekta **marketplace**. This is separate from the globe, which is only for event discovery and doesn't touch the cards.
+
 **What the cards are:** collectible **DJ cards**, collectible **dub cards** and collectible **access passes**. Fans who supported an artist early claim a card for a tour. It carries perks set up with promoters (backstage, skip the queue, guest list, a welcome drink) to reward day-one fans and help venues sell out.
 
 **Repo facts that shape this plan:** the app runs Next.js 16.2.1 with React 19.2. It has no DB, no auth and no cards yet. Run `npm install` and read `node_modules/next/dist/docs/` before writing code (per AGENTS.md). In Next 16, `middleware.ts` is now `proxy.ts`. Keep minting out of request handlers.
@@ -112,7 +114,9 @@ A drop sets the score threshold for each tier. For example, a pass needs ≥2 at
 ```
 proxy.ts                         # Next16 (was middleware): gate /dashboard, /scan by role
 app/
-  (fan)/cards/page.tsx           # my cards binder
+  (fan)/marketplace/page.tsx     # browse drops and cards
+  (fan)/marketplace/[cardId]/page.tsx
+  (fan)/cards/page.tsx           # my collection
   (fan)/cards/[cardId]/page.tsx  # card detail + rotating pass QR
   (fan)/claim/[code]/page.tsx
   (dashboard)/dashboard/page.tsx
@@ -146,9 +150,9 @@ scripts/create-tree.ts  scripts/create-collection.ts  scripts/upload-template.ts
 
 | Phase | Scope | Effort |
 |---|---|---|
-| **A. Devnet investor demo** | Google login → silent wallet → scan a venue QR → DJ card flips in 3D and pins to the user's spot on the globe → "Proof" link to Solana Explorer → a second phone scans the fan's rotating pass QR and redeems "Skip the queue". | **2–3 wks, 1 dev** |
+| **A. Devnet investor demo** | Google login → silent wallet → browse the marketplace and claim a DJ card (or scan a venue QR) → card flips in 3D into the fan's collection → "Proof" link to Solana Explorer → a second phone scans the fan's rotating pass QR and redeems "Skip the queue". | **2–3 wks, 1 dev** |
 | **B. Mainnet pilot, one promoter** | Real tour pass drop for 200–1,000 fans, dashboard v1, offline scanner, SMS at claim, nightly anchors, legal review of perk T&Cs. | **6–8 wks, 2 devs + designer** |
-| **C. Scale** | Self-serve promoters, dub cards with gated audio, gifting, Spotify/Last.fm scoring, royalty-enforced resale through a partner marketplace, sell-through analytics for venues. | **3–4 months** |
+| **C. Scale** | Self-serve promoters, dub cards with gated audio, gifting, Spotify/Last.fm scoring, resale in the Nekta marketplace with royalties enforced (after legal sign-off), sell-through analytics for venues. | **3–4 months** |
 
 **Monthly cost estimates.** Assumptions: 40% of users active monthly, about 3 cards per active user.
 
@@ -167,7 +171,7 @@ For comparison, the same volume using Core for every card would cost about $6k/m
 
 ## 8. Risks
 - **Securities.**
-  - Never market cards as investments. No "floor price" talk, and no Nekta-run marketplace before legal sign-off.
+  - Never market cards as investments. No "floor price" talk, and get legal sign-off before the marketplace allows paid resale.
   - Soulbound passes help the "utility, not investment" case.
   - Under EU MiCA, avoid large runs of identical items.
   - Get a UK FCA memo before mainnet.
