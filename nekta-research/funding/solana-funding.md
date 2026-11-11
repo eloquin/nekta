@@ -27,40 +27,19 @@ No single program called a "Solana Growth Fund" offers exactly $50k–$5M. The r
 - **A good reason to be on-chain.** The best-known Solana ticketing company, KYD Labs (Ticketmaster alumni; Charli XCX, Travis Scott), said publicly that "NFT ticketing doesn't work" as a collectible pitch. It moved to a protocol built around **financing venues and promoters (TIX)**. Expect the fund to ask: *what does the blockchain do for a raver that a database can't?*
 - **The team and the traction.** Monthly users, cities, partners (promoters, venues, festivals).
 
-## 3. Due-diligence risk in the current codebase
+## 3. Where the cards and audio plans live
 
-`app/api/events/route.ts` pulls listings from **Resident Advisor's private GraphQL API** using browser-spoofed headers. Investors will ask where the data comes from. Before pitching, either:
-- get a data partnership (RA, Dice, Skiddle, or promoters directly), or
-- move to promoter-submitted events, which is also better for on-chain claims because the promoter signs the event.
+The detailed plans are in their own folders:
+- **Collectible cards and passes on Solana:** `../nft-cards/cards-on-solana-plan.md`
+- **Why NFT ticketing struggled:** `../nft-cards/nft-ticketing-research.md`
+- **Hosting private dubs securely:** `../audio/dub-audio-hosting.md`
 
-## 4. Moving the cards on-chain (proposed)
+**Data source check before pitching:** investors will ask where event listings come from. Scraping another platform's private API, such as Resident Advisor's, is a due-diligence risk. Use a data partnership or promoter-submitted events instead.
 
-_The repo doesn't have a "cards" feature yet. This assumes cards are per-event or per-user cards in Nekta, like a rave passport. Adjust if they're something else._
-
-### Principle: users shouldn't notice the blockchain
-- Mint as **compressed NFTs** (Metaplex Bubblegum) or **Metaplex Core** assets. Minting costs fractions of a cent, so millions of cards are affordable.
-- **Embedded wallets** (Privy, Dynamic, Phantom embedded, or Web3Auth). Users sign in with email or Apple, and a wallet is created silently.
-- **Nekta pays the fees** through a fee-payer/relayer. Users never hold SOL.
-- Card artwork and metadata go to Arweave or Irys. Fast reads still come from our own DB plus a Helius/Triton DAS indexer.
-
-### What going on-chain unlocks (lead the pitch with these)
-1. **Proof-of-attendance "rave passport":** a verifiable history of events attended, scanned at the door or claimed by GPS plus a promoter-signed QR code.
-2. **Promoter and artist perks:** holders of card X get presale access, guestlist spots or merch drops. Any partner can check this without integrating with our backend.
-3. **Rewards and payments:** Solana Pay / USDC for tickets and drinks, with loyalty points tied to the cards.
-4. **Optional later step, ticketing:** resale with price caps and royalties. Partner with KYD/TICKS here rather than rebuilding it.
-
-### Phased plan
-| Phase | Scope | Rough effort | Use for the pitch |
-|---|---|---|---|
-| 0 | Fix data source and ship cards off-chain | 2–4 wks | Traction baseline |
-| 1 | Devnet pilot: embedded wallet + compressed-NFT card for one event | 2–3 wks | Live demo for the fund call |
-| 2 | Mainnet: a real event or festival partner, with claim at the door | 4–6 wks | First on-chain metrics |
-| 3 | Perks, gating and Solana Pay | 6–8 wks | Retention and revenue story |
-
-## 5. Next steps
+## 4. Next steps
 1. Get the contact's name and fund from Jack, then look up their recent Solana deals.
 2. Write a one-page deck: problem → Nekta (event discovery + card marketplace) → collectible cards and passes on Solana → traction → ask.
-3. Build the Phase 1 devnet demo before the call if possible.
+3. Build the devnet demo (see the cards plan, Phase A) before the call if possible.
 4. In parallel, join the next Colosseum hackathon as a backup route to $250k.
 5. Apply for a Solana Foundation or Superteam grant for the open-source parts, e.g. a proof-of-attendance claim program.
 

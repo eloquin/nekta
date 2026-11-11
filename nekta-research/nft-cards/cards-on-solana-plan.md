@@ -6,7 +6,7 @@ _Draft dated 11 Nov 2026. All prices are **estimates**. Check them with each ven
 
 **What the cards are:** collectible **DJ cards**, collectible **dub cards** and collectible **access passes**. Fans who supported an artist early claim a card for a tour. It carries perks set up with promoters (backstage, skip the queue, guest list, a welcome drink) to reward day-one fans and help venues sell out.
 
-**Repo facts that shape this plan:** the app runs Next.js 16.2.1 with React 19.2. It has no DB, no auth and no cards yet. Run `npm install` and read `node_modules/next/dist/docs/` before writing code (per AGENTS.md). In Next 16, `middleware.ts` is now `proxy.ts`. Keep minting out of request handlers.
+**Codebase note:** this plan was drafted against an older Nekta repo (Next.js 16). Map the file tree in section 5 onto the main app's structure. Mint cards in a background job, never inside a request handler.
 
 **Naming rule:** in the product UI, marketing and the pitch, say **"cards"** and **"passes"**, never "NFTs", "tokens" or "mint". Use the on-chain terms only in engineering docs and in the investor technical appendix.
 
@@ -112,7 +112,7 @@ A drop sets the score threshold for each tier. For example, a pass needs ≥2 at
 
 **Proposed file and route tree:**
 ```
-proxy.ts                         # Next16 (was middleware): gate /dashboard, /scan by role
+proxy.ts                         # Next 16 (was middleware): gate /dashboard and /scan by role
 app/
   (fan)/marketplace/page.tsx     # browse drops and cards
   (fan)/marketplace/[cardId]/page.tsx
@@ -152,7 +152,7 @@ scripts/create-tree.ts  scripts/create-collection.ts  scripts/upload-template.ts
 |---|---|---|
 | **A. Devnet investor demo** | Google login → silent wallet → browse the marketplace and claim a DJ card (or scan a venue QR) → card flips in 3D into the fan's collection → "Proof" link to Solana Explorer → a second phone scans the fan's rotating pass QR and redeems "Skip the queue". | **2–3 wks, 1 dev** |
 | **B. Mainnet pilot, one promoter** | Real tour pass drop for 200–1,000 fans, dashboard v1, offline scanner, SMS at claim, nightly anchors, legal review of perk T&Cs. | **6–8 wks, 2 devs + designer** |
-| **C. Scale** | Self-serve promoters, dub cards with gated audio, gifting, Spotify/Last.fm scoring, resale in the Nekta marketplace with royalties enforced (after legal sign-off), sell-through analytics for venues. | **3–4 months** |
+| **C. Scale** | Self-serve promoters, dub cards with gated audio (see `../audio/dub-audio-hosting.md`), gifting, Spotify/Last.fm scoring, resale in the Nekta marketplace with royalties enforced (after legal sign-off), sell-through analytics for venues. | **3–4 months** |
 
 **Monthly cost estimates.** Assumptions: 40% of users active monthly, about 3 cards per active user.
 
@@ -187,4 +187,4 @@ For comparison, the same volume using Core for every card would cost about $6k/m
   - Artist royalties.
   - Tamper-evident perk records.
   - Don't pitch speculation.
-- **Data source.** RA scraping in `app/api/events/route.ts` is a due-diligence risk. Pass events should come from promoters.
+- **Data source.** Events that carry passes should come from promoters, not scraped listings.
